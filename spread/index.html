@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>短线打差台账</title>
+<style>
+:root{
+  --bg:#f4f6fa;--card:#ffffff;--muted:#64748b;--text:#0f172a;--sub:#475569;
+  --line:#e2e8f0;--accent:#2563eb;--accent-soft:#eff6ff;
+  --up:#dc2626;--up-bg:#fef2f2;--down:#16a34a;--down-bg:#f0fdf4;
+  --amber:#d97706;--amber-bg:#fffbeb;
+  --shadow:0 2px 12px rgba(15,23,42,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b1120;--card:#131c31;--muted:#94a3b8;--text:#f1f5f9;--sub:#cbd5e1;
+    --line:#1e293b;--accent:#3b82f6;--accent-soft:#172554;
+    --up:#f87171;--up-bg:rgba(248,113,113,.14);--down:#4ade80;--down-bg:rgba(74,222,128,.14);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,.14);
+    --shadow:0 4px 20px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;
+  -webkit-text-size-adjust:100%}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:780px;margin:0 auto;padding:12px 12px calc(32px + env(safe-area-inset-bottom))}
+.lock-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-card{width:100%;max-width:390px;background:var(--card);border:1px solid var(--line);
+  border-radius:20px;padding:26px 22px;box-shadow:var(--shadow);text-align:center}
+.lock-icon{width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent);
+  display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px}
+.lock-card h1{font-size:19px;margin:0 0 6px;font-weight:700}
+.lock-card p{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.5}
+.pw-input{width:100%;padding:12px 14px;font-size:18px;border:1.5px solid var(--line);
+  border-radius:12px;background:var(--bg);color:var(--text);outline:none;text-align:center;letter-spacing:1px}
+.pw-input:focus{border-color:var(--accent)}
+.remember-row{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0 16px;
+  font-size:13px;color:var(--sub);user-select:none;cursor:pointer}
+.remember-row input{width:16px;height:16px;accent-color:var(--accent)}
+.btn-primary{width:100%;padding:12px 16px;font-size:16px;font-weight:600;border:0;border-radius:12px;
+  background:var(--accent);color:#fff;cursor:pointer}
+.btn-primary:disabled{opacity:.55;cursor:default}
+.err{color:var(--up);font-size:13px;margin-top:10px;min-height:18px}
+.sec-note{margin-top:14px;font-size:11px;color:var(--muted);line-height:1.45}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.title-grp h2{font-size:18px;margin:0;font-weight:700;letter-spacing:-.2px}
+.title-grp .meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.top-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 11px;font-size:16px;line-height:1.15;font-weight:600;border:1px solid var(--line);
+  border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:active{transform:scale(.98)}
+.btn-sm{padding:6px 10px;font-size:16px;border-radius:9px}
+.btn-accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+
+.hero{background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 58%,#0f766e 100%);
+  color:#fff;border-radius:18px;padding:16px 16px 14px;box-shadow:var(--shadow);margin-bottom:12px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.hero-label{font-size:12px;opacity:.84}
+.hero-val{font-size:26px;font-weight:800;letter-spacing:-.4px;margin:3px 0 4px;font-variant-numeric:tabular-nums}
+.hero-sub{font-size:12.5px;opacity:.92;font-variant-numeric:tabular-nums;line-height:1.45}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:10px;
+  background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.28);
+  font-size:16px;font-weight:600;cursor:pointer}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;
+  padding-top:11px;border-top:1px solid rgba(255,255,255,.16)}
+.hkpi .k{font-size:11px;opacity:.78}
+.hkpi .v{font-size:14px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  box-shadow:var(--shadow);margin-bottom:12px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.card-title{font-size:15px;font-weight:700;margin:0}
+.card-sub{font-size:12px;color:var(--muted)}
+
+.pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto;padding:7px 12px;border-radius:999px;font-size:16px;font-weight:600;
+  border:1px solid var(--line);background:var(--bg);color:var(--sub);cursor:pointer}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.stock-banner{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
+.sb-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sb-name{font-size:15px;font-weight:700}
+.sb-code{font-size:12px;color:var(--muted);margin-left:5px;font-weight:500}
+.sb-quote{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.sb-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.sbm .k{font-size:11px;color:var(--muted)}
+.sbm .v{font-size:13px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+
+.calc-box{margin-top:10px}
+.input-row{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.price-field{flex:1 1 170px;display:flex;align-items:center;background:var(--bg);border:1.5px solid var(--accent);
+  border-radius:12px;padding:4px 10px}
+.price-prefix{font-size:14px;font-weight:700;color:var(--muted);margin-right:6px;white-space:nowrap}
+.price-input{width:100%;border:0;background:transparent;color:var(--text);font-size:18px;font-weight:800;
+  padding:8px 0;outline:none;font-variant-numeric:tabular-nums}
+.step-grp{display:flex;gap:5px}
+.step-btn{padding:8px 11px;font-size:16px;font-weight:700;border:1px solid var(--line);border-radius:10px;
+  background:var(--bg);color:var(--text);cursor:pointer;font-variant-numeric:tabular-nums}
+.step-btn:active{background:var(--accent-soft);color:var(--accent)}
+
+.preset-row{display:flex;gap:6px;overflow-x:auto;padding:9px 0 4px;scrollbar-width:none}
+.preset-row::-webkit-scrollbar{display:none}
+.preset-chip{flex:0 0 auto;padding:6px 10px;border-radius:8px;font-size:16px;font-weight:600;
+  border:1px solid var(--line);background:var(--bg);color:var(--sub);cursor:pointer;font-variant-numeric:tabular-nums}
+.preset-chip.hi{background:var(--accent-soft);color:var(--accent);border-color:rgba(37,99,235,.28)}
+
+.fee-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 12px;
+  font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.fee-chk{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.fee-chk input{width:16px;height:16px;accent-color:var(--accent)}
+
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+@media (max-width:520px){.res-grid{grid-template-columns:1fr}}
+.res-card{border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:var(--bg)}
+.res-card.best{border-color:rgba(37,99,235,.38);background:var(--accent-soft)}
+.rc-tag{font-size:11.5px;font-weight:700;color:var(--sub);display:flex;justify-content:space-between;gap:6px}
+.rc-big{font-size:21px;font-weight:800;margin:5px 0 3px;font-variant-numeric:tabular-nums}
+.rc-sub{font-size:11.5px;color:var(--muted);line-height:1.45;font-variant-numeric:tabular-nums}
+
+.batch-list{display:flex;flex-direction:column;gap:8px}
+.bcard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
+.bcard.win{border-left:4px solid var(--up)}
+.bcard.wait{border-left:4px solid var(--amber)}
+.bc-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bc-id{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.bc-badge{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;font-variant-numeric:tabular-nums}
+.bc-badge.win{background:var(--up-bg);color:var(--up)}
+.bc-badge.wait{background:var(--amber-bg);color:var(--amber)}
+.bc-mid{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:6px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.bc-pnl{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.sim-field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.sim-field input,.sim-field select{width:100%;padding:9px 10px;font-size:16px;font-weight:600;
+  border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font-variant-numeric:tabular-nums}
+
+.hlist{display:flex;flex-direction:column}
+.hrow{display:grid;grid-template-columns:1.35fr .95fr 1.05fr;gap:6px;align-items:center;
+  padding:10px 2px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;cursor:pointer}
+.hrow:last-child{border-bottom:0}
+.hrow:active{background:var(--bg)}
+.h-name{font-size:14px;font-weight:600;line-height:1.25}
+.h-meta{font-size:11.5px;color:var(--muted);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.tag{display:inline-block;padding:1px 6px;border-radius:5px;font-size:10.5px;font-weight:600;
+  background:var(--accent-soft);color:var(--accent)}
+.tag.t-active{background:var(--up-bg);color:var(--up)}
+.tag.t-lock{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.col-r{text-align:right}
+.h-px{font-size:13.5px;font-weight:700}
+.h-chg{display:inline-block;margin-top:2px;padding:1px 6px;border-radius:5px;font-size:11px;font-weight:700}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--muted)}
+.bg-up{background:var(--up-bg);color:var(--up)}
+.bg-down{background:var(--down-bg);color:var(--down)}
+.bg-flat{background:var(--bg);color:var(--muted)}
+
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:4px;vertical-align:middle}
+.foot{font-size:11.5px;color:var(--muted);line-height:1.55;padding:4px 2px}
+input,select,button{font-size:16px;font-family:inherit}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock-screen">
+  <form class="lock-card" id="unlockForm" autocomplete="off">
+    <div class="lock-icon">⚡</div>
+    <h1>短线打差台账与试算</h1>
+    <p>输入口令本地解密在途批次与目标价试算器<br>与主仓位看板同源共享解锁状态，无需重复输入</p>
+    <input id="pwInput" class="pw-input" type="password" inputmode="text"
+      placeholder="输入访问口令" autocomplete="current-password" required autofocus>
+    <label class="remember-row">
+      <input id="rememberChk" type="checkbox" checked>
+      <span>在此设备记住解锁状态</span>
+    </label>
+    <button id="unlockBtn" class="btn-primary" type="submit">解锁看板</button>
+    <div id="errBox" class="err"></div>
+    <div class="sec-note">AES-256-GCM 零明文客户端加密 · PBKDF2-SHA256 (200,000 次)<br>口令与持仓明文从不上传服务器</div>
+  </form>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <div class="topbar">
+    <div class="title-grp">
+      <h2>⚡ 短线打差台账</h2>
+      <div class="meta" id="asof"></div>
+    </div>
+    <div class="top-actions">
+      <a class="btn" href="../">📊 总仓位</a>
+      <button class="btn" id="lockBtn" type="button">🔒 锁定</button>
+    </div>
+  </div>
+
+  <div class="hero" id="heroCard"></div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">🎯 目标价盈亏试算器</div>
+        <div class="card-sub">任意输入目标买回/卖出价，实时重算每批毛差、税费与净利</div>
+      </div>
+    </div>
+    <div class="pills" id="calcStockPills"></div>
+    <div id="calcBody"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title">🛡️ 全部底仓锚点与打差状态</div>
+      <div class="card-sub" id="holdCount"></div>
+    </div>
+    <div class="pills" id="holdFilterPills" style="margin-bottom:8px"></div>
+    <div class="hlist" id="holdList"></div>
+  </div>
+
+  <div class="card" id="closedCard" hidden>
+    <div class="card-hd">
+      <div class="card-title">✅ 已完结打差记录</div>
+      <div class="card-sub" id="closedSub"></div>
+    </div>
+    <div class="batch-list" id="closedList"></div>
+  </div>
+
+  <div class="foot" id="footNote"></div>
+</div>
+
+<script id="payload" type="application/json">{"v":1,"iter":200000,"salt":"3PtUsO4Gm8zWqwdcLYBLyA==","iv":"TZ1hXF/+1g3mXrT7","ct":"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"}</script>
+<script>
+(() => {
+  "use strict";
+  const PAYLOAD = JSON.parse(document.getElementById("payload").textContent);
+  const LS_KEY = "pfdash.key.v1";
+  const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const b64e = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+  const SALT = b64d(PAYLOAD.salt), IV = b64d(PAYLOAD.iv), CT = b64d(PAYLOAD.ct);
+  const ITER = PAYLOAD.iter || 200000;
+
+  async function getFp(){
+    const h = await crypto.subtle.digest("SHA-256", SALT);
+    return b64e(h).slice(0,22);
+  }
+  async function deriveAesKey(passcode, extractable){
+    const base = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(passcode), {name:"PBKDF2"}, false, ["deriveKey"]
+    );
+    return crypto.subtle.deriveKey(
+      {name:"PBKDF2", salt:SALT, iterations:ITER, hash:"SHA-256"},
+      base, {name:"AES-GCM", length:256}, extractable, ["decrypt"]
+    );
+  }
+  async function decryptWithKey(aesKey){
+    const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:IV}, aesKey, CT);
+    return JSON.parse(new TextDecoder().decode(pt));
+  }
+  async function tryRemembered(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return false;
+      const o = JSON.parse(raw);
+      if(!o || o.fp !== await getFp()) return false;
+      const key = await crypto.subtle.importKey("raw", b64d(o.k), {name:"AES-GCM"}, false, ["decrypt"]);
+      const data = await decryptWithKey(key);
+      bootApp(data);
+      return true;
+    }catch(_){
+      localStorage.removeItem(LS_KEY);
+      return false;
+    }
+  }
+
+  const form = document.getElementById("unlockForm");
+  const pwInput = document.getElementById("pwInput");
+  const errBox = document.getElementById("errBox");
+  const unlockBtn = document.getElementById("unlockBtn");
+  const rememberChk = document.getElementById("rememberChk");
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    errBox.textContent = "";
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = "正在解密…";
+    try{
+      const remember = rememberChk.checked;
+      const key = await deriveAesKey(pwInput.value, remember);
+      const data = await decryptWithKey(key);
+      if(remember){
+        const raw = await crypto.subtle.exportKey("raw", key);
+        localStorage.setItem(LS_KEY, JSON.stringify({k:b64e(raw), fp:await getFp(), t:Date.now()}));
+      } else {
+        localStorage.removeItem(LS_KEY);
+      }
+      pwInput.value = "";
+      bootApp(data);
+    }catch(_){
+      errBox.textContent = "口令不正确，请重试";
+    }finally{
+      unlockBtn.disabled = false;
+      unlockBtn.textContent = "解锁看板";
+    }
+  });
+
+  document.getElementById("lockBtn").addEventListener("click", () => {
+    localStorage.removeItem(LS_KEY);
+    D = null;
+    document.getElementById("app").hidden = true;
+    document.getElementById("lockScreen").hidden = false;
+    pwInput.focus();
+  });
+
+  let D = null;
+  let LIVE = {};
+  let liveStamp = "";
+  let liveBusy = false;
+  let selectedCode = "";
+  let targetByCode = {};
+  let deductFees = true;
+  let holdFilter = "ALL";
+  let simState = { side: "short", openPx: "", lots: 1, targetPx: "" };
+
+  const fmt = (n, d=2) => Number(n||0).toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d});
+  const fmtInt = n => Math.round(Number(n||0)).toLocaleString("zh-CN");
+  const signFmt = (n, sym="", d=2) => (n > 0.0001 ? "+" : (n < -0.0001 ? "-" : "")) + sym + fmt(Math.abs(n), d);
+  const cSym = cur => cur === "HKD" ? "HK$" : "¥";
+  const clsPnl = n => n > 0.0001 ? "up" : (n < -0.0001 ? "down" : "flat");
+  const bgChg = n => n > 0.0001 ? "bg-up" : (n < -0.0001 ? "bg-down" : "bg-flat");
+
+  function orderedStocks(){
+    const order = D.stock_order || Object.keys(D.stocks);
+    const seen = new Set();
+    const list = [];
+    for(const c of order){
+      if(D.stocks[c]){ list.push(D.stocks[c]); seen.add(c); }
+    }
+    for(const c of Object.keys(D.stocks)){
+      if(!seen.has(c)) list.push(D.stocks[c]);
+    }
+    return list;
+  }
+
+  function curPrice(st){
+    const lv = LIVE[st.code];
+    return (lv && lv.price > 0) ? lv.price : st.last_ref_price;
+  }
+  function curChgPct(st){
+    const lv = LIVE[st.code];
+    return (lv && lv.price > 0) ? lv.chgPct : (st.change_pct || 0);
+  }
+  function bSh(b){
+    return Number(b.shares_rem ?? bSh(b) ?? b.shares ?? 0);
+  }
+
+  function legFee(amt, rate, minF){
+    if(!deductFees || amt <= 0) return 0;
+    return Math.max(amt * rate, minF);
+  }
+
+  function evalBatch(st, b, side, targetPx){
+    const feeCfg = D.fee_schedule[st.market] || {buy_rate:0.001, sell_rate:0.001, min_fee:5};
+    const sh = bSh(b);
+    const openPx = b.price;
+    const openAmt = sh * openPx;
+    const closeAmt = sh * targetPx;
+    let gross = 0, openFee = 0, closeFee = 0, breakEven = openPx, gapPct = 0;
+
+    if(side === "short"){
+      openFee = legFee(openAmt, feeCfg.sell_rate, feeCfg.min_fee);
+      closeFee = legFee(closeAmt, feeCfg.buy_rate, feeCfg.min_fee);
+      gross = openAmt - closeAmt;
+      const netProceeds = openAmt - openFee;
+      if(!deductFees){
+        breakEven = openPx;
+      } else {
+        const b1 = netProceeds / (sh * (1 + feeCfg.buy_rate));
+        breakEven = (b1 * sh * feeCfg.buy_rate >= feeCfg.min_fee) ? b1 : ((netProceeds - feeCfg.min_fee) / sh);
+      }
+      gapPct = targetPx > 0 ? ((targetPx - breakEven) / targetPx * 100) : 0;
+    } else {
+      openFee = legFee(openAmt, feeCfg.buy_rate, feeCfg.min_fee);
+      closeFee = legFee(closeAmt, feeCfg.sell_rate, feeCfg.min_fee);
+      gross = closeAmt - openAmt;
+      const totalCost = openAmt + openFee;
+      if(!deductFees){
+        breakEven = openPx;
+      } else {
+        const s1 = totalCost / (sh * (1 - feeCfg.sell_rate));
+        breakEven = (s1 * sh * feeCfg.sell_rate >= feeCfg.min_fee) ? s1 : ((totalCost + feeCfg.min_fee) / sh);
+      }
+      gapPct = targetPx > 0 ? ((breakEven - targetPx) / targetPx * 100) : 0;
+    }
+    const totalFee = openFee + closeFee;
+    const net = gross - totalFee;
+    const retPct = openAmt > 0 ? (net / openAmt * 100) : 0;
+    return {
+      batch_id: b.batch_id,
+      date: b.date || "",
+      shares: sh,
+      openPx,
+      openAmt,
+      closeAmt,
+      gross,
+      totalFee,
+      net,
+      breakEven,
+      profitable: net > 0.0001,
+      retPct,
+      gapPct
+    };
+  }
+
+  function evalStockSpread(st, targetPx){
+    const shorts = st.open_short_batches || [];
+    const longs = st.open_long_batches || [];
+    if(!shorts.length && !longs.length) return null;
+    const side = shorts.length ? "short" : "long";
+    const rawBatches = side === "short" ? shorts : longs;
+    const rows = rawBatches.map(b => evalBatch(st, b, side, targetPx));
+
+    const totalShares = rows.reduce((s, r) => s + r.shares, 0);
+    const totalOpenAmt = rows.reduce((s, r) => s + r.openAmt, 0);
+    const avgOpenPx = totalShares > 0 ? totalOpenAmt / totalShares : 0;
+
+    const allGross = rows.reduce((s, r) => s + r.gross, 0);
+    const allFee = rows.reduce((s, r) => s + r.totalFee, 0);
+    const allNet = rows.reduce((s, r) => s + r.net, 0);
+
+    const winRows = rows.filter(r => r.profitable);
+    const winShares = winRows.reduce((s, r) => s + r.shares, 0);
+    const winGross = winRows.reduce((s, r) => s + r.gross, 0);
+    const winFee = winRows.reduce((s, r) => s + r.totalFee, 0);
+    const winNet = winRows.reduce((s, r) => s + r.net, 0);
+
+    // Solve overall breakeven price where sum(net) == 0 via binary search
+    let lo = 0.001, hi = Math.max(avgOpenPx * 3, 10);
+    for(let i = 0; i < 45; i++){
+      const mid = (lo + hi) / 2;
+      const sumNet = rawBatches.reduce((s, b) => s + evalBatch(st, b, side, mid).net, 0);
+      if(side === "short"){
+        if(sumNet > 0) lo = mid; else hi = mid;
+      } else {
+        if(sumNet > 0) hi = mid; else lo = mid;
+      }
+    }
+    const allBreakEven = (lo + hi) / 2;
+
+    return {
+      side, rows, totalShares, totalOpenAmt, avgOpenPx,
+      allGross, allFee, allNet, allBreakEven,
+      winCount: winRows.length, winShares, winGross, winFee, winNet
+    };
+  }
+
+  function toCny(amt, currency){
+    const fx = (D.fx && D.fx["HKD/CNY"]) ? D.fx["HKD/CNY"] : (D.fx_hkd_cny || 0.8509);
+    return currency === "HKD" ? amt * fx : amt;
+  }
+
+  function fetchLiveQuotes(){
+    if(liveBusy || !D) return;
+    liveBusy = true;
+    renderHero();
+    const stocks = orderedStocks();
+    const qmap = {};
+    const qcodes = stocks.map(st => {
+      let qk = "";
+      if(st.code.endsWith(".HK")) qk = "r_hk" + st.code.slice(0,5);
+      else if(st.code.endsWith(".SH")) qk = "sh" + st.code.slice(0,6);
+      else qk = "sz" + st.code.slice(0,6);
+      qmap[st.code] = qk;
+      return qk;
+    });
+    const s = document.createElement("script");
+    s.charset = "gbk";
+    s.referrerPolicy = "no-referrer";
+    s.src = "https://qt.gtimg.cn/q=" + qcodes.join(",") + "&_t=" + Date.now();
+    const done = ok => {
+      s.remove();
+      liveBusy = false;
+      if(ok){
+        let got = 0;
+        for(const st of stocks){
+          const raw = window["v_" + qmap[st.code]];
+          if(typeof raw !== "string") continue;
+          const p = raw.split("~");
+          const px = parseFloat(p[3]), prev = parseFloat(p[4]);
+          if(px > 0 && prev > 0){
+            const pct = isFinite(parseFloat(p[32])) ? parseFloat(p[32]) : ((px - prev) / prev * 100);
+            LIVE[st.code] = { price: px, prevClose: prev, chgPct: pct, ts: p[30] || "" };
+            got++;
+          }
+        }
+        if(got > 0){
+          const now = new Date();
+          liveStamp = now.toLocaleTimeString("zh-CN",{hour12:false});
+        }
+      }
+      renderAll(false);
+    };
+    s.onload = () => done(true);
+    s.onerror = () => done(false);
+    document.head.appendChild(s);
+  }
+
+  function bootApp(data){
+    D = data;
+    const stocks = orderedStocks();
+    const active = stocks.filter(s => (s.open_short_batches||[]).length || (s.open_long_batches||[]).length);
+    selectedCode = active.length ? active[0].code : stocks[0].code;
+    for(const st of stocks){
+      if(targetByCode[st.code] === undefined){
+        const sh = st.open_short_batches || [];
+        const lg = st.open_long_batches || [];
+        if(sh.length){
+          // Default initial trial price: slightly below avg sell price or ref price
+          const totSh = sh.reduce((a,b)=>a+bSh(b),0);
+          const avg = sh.reduce((a,b)=>a+bSh(b)*b.price,0) / totSh;
+          targetByCode[st.code] = Number((Math.min(st.last_ref_price, avg) * 0.995).toFixed(2));
+        } else if(lg.length){
+          const totSh = lg.reduce((a,b)=>a+bSh(b),0);
+          const avg = lg.reduce((a,b)=>a+bSh(b)*b.price,0) / totSh;
+          targetByCode[st.code] = Number((Math.max(st.last_ref_price, avg) * 1.01).toFixed(2));
+        } else {
+          targetByCode[st.code] = st.last_ref_price;
+        }
+      }
+    }
+    document.getElementById("lockScreen").hidden = true;
+    document.getElementById("app").hidden = false;
+    renderAll(true);
+  }
+
+  function renderHero(){
+    const stocks = orderedStocks();
+    let activeStockCnt = 0, activeBatchCnt = 0, shortProceedsCny = 0, longCostCny = 0;
+    let liveWinBatches = 0, liveWinNetCny = 0, realizedNetCny = 0;
+
+    for(const st of stocks){
+      const sh = st.open_short_batches || [];
+      const lg = st.open_long_batches || [];
+      realizedNetCny += toCny(st.realized_net_pnl || 0, st.currency);
+      if(sh.length || lg.length){
+        activeStockCnt++;
+        activeBatchCnt += sh.length + lg.length;
+        for(const b of sh) shortProceedsCny += toCny(bSh(b) * b.price, st.currency);
+        for(const b of lg) longCostCny += toCny(bSh(b) * b.price, st.currency);
+        const liveEval = evalStockSpread(st, curPrice(st));
+        if(liveEval && liveEval.winCount > 0){
+          liveWinBatches += liveEval.winCount;
+          liveWinNetCny += toCny(liveEval.winNet, st.currency);
+        }
+      }
+    }
+    const cashCny = D.cash_reserve_cny || 0;
+    const freeCashCny = Math.max(0, cashCny - shortProceedsCny);
+    const fx = (D.fx && D.fx["HKD/CNY"]) ? D.fx["HKD/CNY"] : (D.fx_hkd_cny || 0.8509);
+
+    document.getElementById("asof").innerHTML = liveStamp
+      ? `<span class="live-dot"></span>实时行情 ${liveStamp} · 汇率 1 HKD = ${fx.toFixed(4)} CNY`
+      : `基准：${D.data_cutoff || D.as_of} · 汇率 1 HKD = ${fx.toFixed(4)} CNY`;
+
+    const liveActionText = liveWinBatches > 0
+      ? `按最新价可落袋 ${liveWinBatches} 批（净赚约 +¥${fmt(liveWinNetCny,0)}）`
+      : `按最新价暂无达标回补批次（等待回调或输入目标价试算）`;
+
+    document.getElementById("heroCard").innerHTML = `
+      <div class="hero-top">
+        <div>
+          <div class="hero-label">反T待接回锁定资金（折合人民币）</div>
+          <div class="hero-val">¥${fmt(shortProceedsCny, 2)}</div>
+          <div class="hero-sub">${activeStockCnt} 只标的 · ${activeBatchCnt} 笔在途批次 · ${liveActionText}</div>
+        </div>
+        <button class="hero-badge" id="refreshBtn" type="button">
+          ${liveBusy ? "刷新中…" : (liveStamp ? "🔄 刷新实时价" : "📡 拉取实时行情")}
+        </button>
+      </div>
+      <div class="hero-grid">
+        <div class="hkpi">
+          <div class="k">账户总现金</div>
+          <div class="v">¥${fmt(cashCny/10000, 2)}万</div>
+        </div>
+        <div class="hkpi">
+          <div class="k">扣除待接回后自由现金</div>
+          <div class="v">¥${fmt(freeCashCny/10000, 2)}万</div>
+        </div>
+        <div class="hkpi">
+          <div class="k">累计已完结打差净利</div>
+          <div class="v">${signFmt(realizedNetCny, "¥", 2)}</div>
+        </div>
+      </div>`;
+
+    document.getElementById("refreshBtn").onclick = fetchLiveQuotes;
+  }
+
+  function renderCalcPills(){
+    const stocks = orderedStocks();
+    const active = stocks.filter(s => (s.open_short_batches||[]).length || (s.open_long_batches||[]).length);
+    const others = stocks.filter(s => !((s.open_short_batches||[]).length || (s.open_long_batches||[]).length));
+    const list = [...active, ...others];
+
+    const el = document.getElementById("calcStockPills");
+    el.innerHTML = list.map(st => {
+      const cnt = (st.open_short_batches||[]).length + (st.open_long_batches||[]).length;
+      const badge = cnt > 0 ? ` (${cnt}批)` : " (模拟)";
+      return `<button type="button" class="pill ${st.code === selectedCode ? "active" : ""}" data-code="${st.code}">${st.name}${badge}</button>`;
+    }).join("");
+
+    el.querySelectorAll("button").forEach(btn => {
+      btn.onclick = () => {
+        selectedCode = btn.dataset.code;
+        const st = D.stocks[selectedCode];
+        if(!((st.open_short_batches||[]).length || (st.open_long_batches||[]).length)){
+          const px = curPrice(st);
+          simState.openPx = px.toFixed(2);
+          simState.lots = 1;
+          simState.targetPx = (px * 0.98).toFixed(2);
+        }
+        renderCalcPills();
+        renderCalcBody(true);
+      };
+    });
+  }
+
+  function renderCalcBody(rebuildInput){
+    const st = D.stocks[selectedCode];
+    if(!st) return;
+    const sym = cSym(st.currency);
+    const livePx = curPrice(st);
+    const chgPct = curChgPct(st);
+    const hasBatches = ((st.open_short_batches||[]).length + (st.open_long_batches||[]).length) > 0;
+    const container = document.getElementById("calcBody");
+
+    if(!hasBatches){
+      // Prospective new T simulator for pure locked base holdings
+      if(!simState.openPx) simState.openPx = livePx.toFixed(2);
+      if(!simState.targetPx) simState.targetPx = (livePx * 0.98).toFixed(2);
+      const openPx = Math.max(0.01, parseFloat(simState.openPx) || livePx);
+      const lots = Math.max(1, parseInt(simState.lots, 10) || 1);
+      const sh = lots * st.lot_size;
+      const targetPx = Math.max(0.01, parseFloat(simState.targetPx) || livePx);
+      const fakeBatch = { batch_id: "模拟批次", shares_rem: sh, price: openPx };
+      const r = evalBatch(st, fakeBatch, simState.side, targetPx);
+
+      container.innerHTML = `
+        <div class="stock-banner">
+          <div class="sb-top">
+            <div><span class="sb-name">${st.name}</span><span class="sb-code">${st.code} · 每手 ${st.lot_size} 股</span></div>
+            <div class="sb-quote ${clsPnl(chgPct)}">最新 ${sym}${fmt(livePx,2)} (${chgPct>=0?"+":""}${chgPct.toFixed(2)}%)</div>
+          </div>
+          <div class="sb-metrics">
+            <div class="sbm"><div class="k">锁定满额底仓</div><div class="v">${fmtInt(st.base_shares)} 股 (${st.base_lots}手)</div></div>
+            <div class="sbm"><div class="k">在途打差批次</div><div class="v">0 批（纯净底仓）</div></div>
+            <div class="sbm"><div class="k">模拟每手金额</div><div class="v">${sym}${fmt(livePx * st.lot_size, 0)}</div></div>
+          </div>
+        </div>
+        <div class="sim-grid">
+          <div class="sim-field">
+            <label>模拟方向</label>
+            <select id="simSide">
+              <option value="short" ${simState.side==="short"?"selected":""}>反T（先卖底仓后低接）</option>
+              <option value="long" ${simState.side==="long"?"selected":""}>正T（逢低加买后高抛）</option>
+            </select>
+          </div>
+          <div class="sim-field">
+            <label>手数（每手 ${st.lot_size} 股，共 ${fmtInt(sh)} 股）</label>
+            <input type="number" id="simLots" min="1" step="1" inputmode="numeric" value="${lots}">
+          </div>
+          <div class="sim-field">
+            <label>${simState.side==="short"?"模拟卖出价":"模拟买入价"} (${sym})</label>
+            <input type="number" id="simOpenPx" step="0.01" inputmode="decimal" value="${simState.openPx}">
+          </div>
+          <div class="sim-field">
+            <label>${simState.side==="short"?"目标接回价":"目标止盈价"} (${sym})</label>
+            <input type="number" id="simTargetPx" step="0.01" inputmode="decimal" value="${simState.targetPx}">
+          </div>
+        </div>
+        <div class="fee-row">
+          <label class="fee-chk"><input type="checkbox" id="simFeeChk" ${deductFees?"checked":""}><span>扣除双边印花税与佣金估算</span></label>
+          <span>保本临界价：<b>${sym}${fmt(r.breakEven, 3)}</b></span>
+        </div>
+        <div class="res-card best">
+          <div class="rc-tag"><span>🧪 模拟单笔打差净盈亏（${fmtInt(sh)} 股）</span><span>单笔金额 ${sym}${fmt(r.openAmt,0)}</span></div>
+          <div class="rc-big ${clsPnl(r.net)}">${signFmt(r.net, sym, 2)} (${r.retPct>=0?"+":""}${r.retPct.toFixed(2)}%)</div>
+          <div class="rc-sub">毛差价 ${signFmt(r.gross, sym, 2)} · 双边预估税费 ${sym}${fmt(r.totalFee, 2)}</div>
+        </div>`;
+
+      const bindSim = () => {
+        simState.side = document.getElementById("simSide").value;
+        simState.lots = document.getElementById("simLots").value;
+        simState.openPx = document.getElementById("simOpenPx").value;
+        simState.targetPx = document.getElementById("simTargetPx").value;
+        renderCalcBody(false);
+      };
+      document.getElementById("simSide").onchange = bindSim;
+      document.getElementById("simLots").oninput = bindSim;
+      document.getElementById("simOpenPx").oninput = bindSim;
+      document.getElementById("simTargetPx").oninput = bindSim;
+      document.getElementById("simFeeChk").onchange = e => { deductFees = e.target.checked; renderAll(false); };
+      return;
+    }
+
+    const targetPx = Math.max(0.01, Number(targetByCode[st.code] || livePx));
+    const ev = evalStockSpread(st, targetPx);
+    const isShort = ev.side === "short";
+    const stepUnit = st.currency === "HKD" ? 0.10 : 0.05;
+
+    if(rebuildInput || !document.getElementById("targetInput")){
+      const presets = isShort
+        ? [
+            { label: `最新价 ${fmt(livePx,2)}`, val: livePx, hi: true },
+            { label: `整体保本 ${fmt(ev.allBreakEven,2)}`, val: Number(ev.allBreakEven.toFixed(2)) },
+            { label: `均价-1% (${fmt(ev.avgOpenPx*0.99,2)})`, val: Number((ev.avgOpenPx*0.99).toFixed(2)) },
+            { label: `均价-2% (${fmt(ev.avgOpenPx*0.98,2)})`, val: Number((ev.avgOpenPx*0.98).toFixed(2)) },
+            { label: `均价-4% (${fmt(ev.avgOpenPx*0.96,2)})`, val: Number((ev.avgOpenPx*0.96).toFixed(2)) }
+          ]
+        : [
+            { label: `最新价 ${fmt(livePx,2)}`, val: livePx, hi: true },
+            { label: `整体保本 ${fmt(ev.allBreakEven,2)}`, val: Number(ev.allBreakEven.toFixed(2)) },
+            { label: `均价+1% (${fmt(ev.avgOpenPx*1.01,2)})`, val: Number((ev.avgOpenPx*1.01).toFixed(2)) },
+            { label: `均价+2% (${fmt(ev.avgOpenPx*1.02,2)})`, val: Number((ev.avgOpenPx*1.02).toFixed(2)) },
+            { label: `均价+4% (${fmt(ev.avgOpenPx*1.04,2)})`, val: Number((ev.avgOpenPx*1.04).toFixed(2)) }
+          ];
+
+      container.innerHTML = `
+        <div class="stock-banner" id="stockBanner"></div>
+        <div class="calc-box">
+          <div class="input-row">
+            <div class="price-field">
+              <span class="price-prefix">${isShort ? "目标接回价" : "目标卖出价"} ${sym}</span>
+              <input id="targetInput" class="price-input" type="number" step="0.01" min="0.01" inputmode="decimal" value="${targetPx}">
+            </div>
+            <div class="step-grp">
+              <button type="button" class="step-btn" id="stepMinus">-${stepUnit.toFixed(2)}</button>
+              <button type="button" class="step-btn" id="stepPlus">+${stepUnit.toFixed(2)}</button>
+            </div>
+          </div>
+          <div class="preset-row" id="presetRow">
+            ${presets.map(p => `<button type="button" class="preset-chip ${p.hi?"hi":""}" data-val="${p.val}">${p.label}</button>`).join("")}
+          </div>
+          <div class="fee-row">
+            <label class="fee-chk">
+              <input type="checkbox" id="feeToggle" ${deductFees ? "checked" : ""}>
+              <span>扣除双边印花税与佣金估算</span>
+            </label>
+            <span id="overallBeLabel"></span>
+          </div>
+          <div class="res-grid" id="resGrid"></div>
+          <div class="batch-list" id="batchList"></div>
+        </div>`;
+
+      const inp = document.getElementById("targetInput");
+      inp.addEventListener("input", () => {
+        const v = parseFloat(inp.value);
+        if(v > 0){
+          targetByCode[st.code] = v;
+          updateCalcDetails(st);
+        }
+      });
+      document.getElementById("stepMinus").onclick = () => {
+        const next = Math.max(0.01, Number(((parseFloat(inp.value)||livePx) - stepUnit).toFixed(2)));
+        inp.value = next;
+        targetByCode[st.code] = next;
+        updateCalcDetails(st);
+      };
+      document.getElementById("stepPlus").onclick = () => {
+        const next = Number(((parseFloat(inp.value)||livePx) + stepUnit).toFixed(2));
+        inp.value = next;
+        targetByCode[st.code] = next;
+        updateCalcDetails(st);
+      };
+      document.getElementById("presetRow").querySelectorAll("button").forEach(b => {
+        b.onclick = () => {
+          const v = parseFloat(b.dataset.val);
+          inp.value = v;
+          targetByCode[st.code] = v;
+          updateCalcDetails(st);
+        };
+      });
+      document.getElementById("feeToggle").onchange = e => {
+        deductFees = e.target.checked;
+        renderHero();
+        renderCalcBody(true);
+      };
+    }
+    updateCalcDetails(st);
+  }
+
+  function updateCalcDetails(st){
+    const sym = cSym(st.currency);
+    const livePx = curPrice(st);
+    const chgPct = curChgPct(st);
+    const targetPx = Math.max(0.01, Number(targetByCode[st.code] || livePx));
+    const ev = evalStockSpread(st, targetPx);
+    if(!ev) return;
+    const isShort = ev.side === "short";
+
+    // Update live preset button label if live quotes refreshed
+    const firstPreset = document.querySelector("#presetRow .preset-chip.hi");
+    if(firstPreset){
+      firstPreset.dataset.val = livePx;
+      firstPreset.textContent = `${LIVE[st.code] ? "实时价" : "最新价"} ${fmt(livePx,2)}`;
+    }
+
+    document.getElementById("stockBanner").innerHTML = `
+      <div class="sb-top">
+        <div>
+          <span class="sb-name">${st.name}</span>
+          <span class="sb-code">${st.code} · ${isShort ? "反T先卖待接回" : "正T加买待止盈"}</span>
+        </div>
+        <div class="sb-quote ${clsPnl(chgPct)}">
+          ${LIVE[st.code] ? "实时 " : "收盘 "}${sym}${fmt(livePx, 2)} (${chgPct>=0?"+":""}${chgPct.toFixed(2)}%)
+        </div>
+      </div>
+      <div class="sb-metrics">
+        <div class="sbm">
+          <div class="k">原满额底仓锚点</div>
+          <div class="v">${fmtInt(st.base_shares)} 股 (${st.base_lots}手)</div>
+        </div>
+        <div class="sbm">
+          <div class="k">账户现留股数</div>
+          <div class="v">${fmtInt(st.current_total_shares)} 股</div>
+        </div>
+        <div class="sbm">
+          <div class="k">${isShort ? "已卖待接回均价" : "加买在途均价"}</div>
+          <div class="v">${sym}${fmt(ev.avgOpenPx, 3)} (${fmtInt(ev.totalShares)}股)</div>
+        </div>
+      </div>`;
+
+    document.getElementById("overallBeLabel").innerHTML =
+      `全量保本临界价：<b>${sym}${fmt(ev.allBreakEven, 3)}</b>`;
+
+    document.getElementById("resGrid").innerHTML = `
+      <div class="res-card best">
+        <div class="rc-tag">
+          <span>✨ 择优${isShort ? "接回" : "止盈"}（仅平盈利批次）</span>
+          <span>${ev.winCount}/${ev.rows.length} 批 · ${fmtInt(ev.winShares)} 股</span>
+        </div>
+        <div class="rc-big ${clsPnl(ev.winNet)}">${ev.winCount > 0 ? signFmt(ev.winNet, sym, 2) : (sym + "0.00")}</div>
+        <div class="rc-sub">${ev.winCount > 0
+          ? `毛差价 ${signFmt(ev.winGross, sym, 2)} · 预估税费 ${sym}${fmt(ev.winFee, 2)}`
+          : `在 ${sym}${fmt(targetPx, 2)} 暂无盈利批次，可继续等回调`}</div>
+      </div>
+      <div class="res-card">
+        <div class="rc-tag">
+          <span>📦 全量一次性${isShort ? "接回" : "卖出"}</span>
+          <span>共 ${ev.rows.length} 批 · ${fmtInt(ev.totalShares)} 股</span>
+        </div>
+        <div class="rc-big ${clsPnl(ev.allNet)}">${signFmt(ev.allNet, sym, 2)}</div>
+        <div class="rc-sub">毛差价 ${signFmt(ev.allGross, sym, 2)} · 预估税费 ${sym}${fmt(ev.allFee, 2)} · 原总金额 ${sym}${fmt(ev.totalOpenAmt, 0)}</div>
+      </div>`;
+
+    // Sort batches: most profitable first!
+    const sortedRows = [...ev.rows].sort((a, b) => b.net - a.net);
+    document.getElementById("batchList").innerHTML = sortedRows.map(r => {
+      const badgeTxt = r.profitable
+        ? `可${isShort ? "接回" : "止盈"} ${r.retPct>=0?"+":""}${r.retPct.toFixed(2)}%`
+        : `距保本还差 ${Math.abs(r.gapPct).toFixed(2)}%`;
+      return `
+        <div class="bcard ${r.profitable ? "win" : "wait"}">
+          <div class="bc-top">
+            <div class="bc-id">${r.batch_id} · ${isShort ? "原卖出" : "原买入"} ${sym}${fmt(r.openPx, 2)} × ${fmtInt(r.shares)} 股</div>
+            <span class="bc-badge ${r.profitable ? "win" : "wait"}">${badgeTxt}</span>
+          </div>
+          <div class="bc-mid">
+            <span>原金额 ${sym}${fmt(r.openAmt, 0)} · 保本价 <b>${sym}${fmt(r.breakEven, 3)}</b> · 毛差 ${signFmt(r.gross, sym, 1)}</span>
+            <span class="bc-pnl ${clsPnl(r.net)}">净利 ${signFmt(r.net, sym, 2)}</span>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderHoldings(){
+    const stocks = orderedStocks();
+    const activeCnt = stocks.filter(s => (s.open_short_batches||[]).length || (s.open_long_batches||[]).length).length;
+    const lockCnt = stocks.length - activeCnt;
+    const hkCnt = stocks.filter(s => s.market === "港股").length;
+    const aCnt = stocks.filter(s => s.market === "A股").length;
+
+    const filters = [
+      ["ALL", `全部 (${stocks.length})`],
+      ["ACTIVE", `打差在途 (${activeCnt})`],
+      ["LOCKED", `纯净锁定 (${lockCnt})`],
+      ["HK", `港股 (${hkCnt})`],
+      ["A", `A股 (${aCnt})`]
+    ];
+    const fpEl = document.getElementById("holdFilterPills");
+    fpEl.innerHTML = filters.map(([k, lbl]) =>
+      `<button type="button" class="pill ${holdFilter===k?"active":""}" data-f="${k}">${lbl}</button>`
+    ).join("");
+    fpEl.querySelectorAll("button").forEach(b => {
+      b.onclick = () => { holdFilter = b.dataset.f; renderHoldings(); };
+    });
+
+    const shown = stocks.filter(s => {
+      const has = ((s.open_short_batches||[]).length + (s.open_long_batches||[]).length) > 0;
+      if(holdFilter === "ACTIVE") return has;
+      if(holdFilter === "LOCKED") return !has;
+      if(holdFilter === "HK") return s.market === "港股";
+      if(holdFilter === "A") return s.market === "A股";
+      return true;
+    });
+
+    document.getElementById("holdCount").textContent = `点按任意股票可切入上方试算器`;
+    const listEl = document.getElementById("holdList");
+    listEl.innerHTML = shown.map(st => {
+      const sym = cSym(st.currency);
+      const px = curPrice(st);
+      const pct = curChgPct(st);
+      const sh = st.open_short_batches || [];
+      const lg = st.open_long_batches || [];
+      let statusTag = `<span class="tag t-lock">底仓锁定</span>`;
+      let subLine = `底仓 ${fmtInt(st.base_shares)} 股 (${st.base_lots}手 · 每手${st.lot_size})`;
+      if(sh.length){
+        const soldSh = sh.reduce((a,b)=>a+bSh(b),0);
+        const avg = sh.reduce((a,b)=>a+bSh(b)*b.price,0) / soldSh;
+        statusTag = `<span class="tag t-active">反T待接回 ${sh.length}批</span>`;
+        subLine = `锚点 ${fmtInt(st.base_shares)} 股 · 现留 ${fmtInt(st.current_total_shares)} · 待回 ${fmtInt(soldSh)}股(均${sym}${fmt(avg,2)})`;
+      } else if(lg.length){
+        const buySh = lg.reduce((a,b)=>a+bSh(b),0);
+        const avg = lg.reduce((a,b)=>a+bSh(b)*b.price,0) / buySh;
+        statusTag = `<span class="tag t-active">正T待止盈 ${lg.length}批</span>`;
+        subLine = `锚点 ${fmtInt(st.base_shares)} 股 · 加买 ${fmtInt(buySh)}股(均${sym}${fmt(avg,2)})`;
+      }
+      return `
+        <div class="hrow" data-code="${st.code}">
+          <div>
+            <div class="h-name">${st.name}</div>
+            <div class="h-meta"><span>${st.code}</span>${statusTag}</div>
+            <div class="h-meta"><span>${subLine}</span></div>
+          </div>
+          <div class="col-r">
+            <div class="h-px">${sym}${fmt(px, 2)}</div>
+            <span class="h-chg ${bgChg(pct)}">${pct>0?"+":""}${pct.toFixed(2)}%</span>
+          </div>
+          <div class="col-r">
+            <div class="h-px">${fmtInt(st.current_total_shares)} 股</div>
+            <div class="h-meta" style="justify-content:flex-end">现市值 ${sym}${fmt(st.current_total_shares * px / 10000, 2)}万</div>
+          </div>
+        </div>`;
+    }).join("");
+
+    listEl.querySelectorAll(".hrow").forEach(row => {
+      row.onclick = () => {
+        selectedCode = row.dataset.code;
+        renderCalcPills();
+        renderCalcBody(true);
+        document.getElementById("calcStockPills").scrollIntoView({behavior:"smooth", block:"nearest"});
+      };
+    });
+  }
+
+  function renderClosed(){
+    const stocks = orderedStocks();
+    const rounds = [];
+    for(const st of stocks){
+      for(const r of (st.closed_rounds || [])){
+        rounds.push({ st, r });
+      }
+    }
+    const card = document.getElementById("closedCard");
+    if(!rounds.length){
+      card.hidden = true;
+      return;
+    }
+    card.hidden = false;
+    rounds.sort((a,b) => String(b.r.close_time||"").localeCompare(String(a.r.close_time||"")));
+    document.getElementById("closedSub").textContent = `共 ${rounds.length} 笔已落袋`;
+    document.getElementById("closedList").innerHTML = rounds.slice(0, 20).map(({st, r}) => {
+      const sym = cSym(st.currency);
+      return `
+        <div class="bcard win">
+          <div class="bc-top">
+            <div class="bc-id">${st.name} (${st.code}) · ${r.mode==="reverse_t"?"反T接回":"正T止盈"} ${fmtInt(r.shares)} 股</div>
+            <span class="bc-pnl ${clsPnl(r.net_pnl)}">${signFmt(r.net_pnl, sym, 2)}</span>
+          </div>
+          <div class="bc-mid">
+            <span>开仓 ${sym}${fmt(r.open_price,2)} → 平仓 ${sym}${fmt(r.close_price,2)} · 税费 ${sym}${fmt(r.fees,2)}</span>
+            <span>${r.date || ""}</span>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderAll(rebuildInput){
+    if(!D) return;
+    renderHero();
+    renderCalcPills();
+    renderCalcBody(rebuildInput);
+    renderHoldings();
+    renderClosed();
+    const feeHk = D.fee_schedule["港股"] || {};
+    const feeA = D.fee_schedule["A股"] || {};
+    document.getElementById("footNote").innerHTML =
+      `税费默认估算标准：${feeHk.note || ""}；${feeA.note || ""}。<br>` +
+      `安全说明：本页面源码不含任何持仓与批次明文，全部数据在 Safari 本地通过 WebCrypto AES-256-GCM 解密计算。每次你在聊天中告知新的做T买卖后，台账会自动加密同步至此页面。`;
+  }
+
+  tryRemembered();
+})();
+</script>
+</body>
+</html>
